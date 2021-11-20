@@ -449,22 +449,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 if (action is not SuggestedAction suggestedAction)
                     return true;
 
-                broker.DismissSession(view);
-                var threadOperationExecutor = GetComponentModelService<IUIThreadOperationExecutor>();
-                var guardedOperations = GetComponentModelService<IGuardedOperations2>();
-                threadOperationExecutor.Execute(
-                    title: "Execute Suggested Action",
-                    defaultDescription: Accelerator.StripAccelerators(action.DisplayText, '_'),
-                    allowCancellation: true,
-                    showProgress: true,
-                    action: context =>
-                    {
-                        guardedOperations.CallExtensionPoint(
-                            errorSource: suggestedAction,
-                            call: () => suggestedAction.Invoke(context),
-                            exceptionGuardFilter: e => e is not OperationCanceledException);
-                    });
-
+                await suggestedAction.GetTestAccessor().InvokeAsync();
                 return true;
             };
         }
